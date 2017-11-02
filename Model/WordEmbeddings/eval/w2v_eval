@@ -1,0 +1,22 @@
+
+
+Evaluation of Embedding Model: en.wiki.bpe.op200000.d300.w2v.bin
+Accuracy:0.15392907921821616
+__________________________________________________
+
+
+Evaluation of Embedding Model: wiki.en.vec
+Accuracy:0.07429684315412836
+__________________________________________________
+
+
+Evaluation of Embedding Model: de.wiki.bpe.op200000.d300.w2v.bin
+Accuracy:0.23587371629584342
+__________________________________________________
+
+
+Evaluation of Embedding Model: wiki.de.vec
+Accuracy:0.07601997473941595
+__________________________________________________
+
+
