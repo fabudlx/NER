@@ -6,9 +6,9 @@ import tensorflow as tf
 from keras_contrib.layers.crf import CRF
 from Model.WordEmbeddings.WordEmbedding import EMBEDDING_SIZE
 
-SENTENCE_LENGTH = 20
+SENTENCE_LENGTH = 15
 NO_OF_CATEGORIES = 9
-CHAR_EMBEDDING_SIZE = 61
+CHAR_EMBEDDING_SIZE = 50
 
 
 def create_mlp_model():
@@ -83,34 +83,11 @@ def create_lstm_model():
     merge_one = concatenate([forward_lstm_layer, backward_lstm_layer])
     dropout = Dropout(0.6)(merge_one)
     dense = Dense(300, activation='relu')(dropout)
-    dropout2 = Dropout(0.5)(dense)
+    dropout2 = Dropout(0.6)(dense)
     dense2 = Dense(100, activation='relu')(dropout2)
     predictions = Dense(NO_OF_CATEGORIES, activation='softmax')(dense2)
 
     model = Model(inputs=[forward_input, backward_input], outputs=predictions)
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    model.summary()
-    print('LSTM model created and compiled')
-    return model
-
-def create_lstm_model_two_outputs():
-    print('creating new LSTM model')
-
-    forward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
-    forward_lstm_layer = LSTM(300, activation='relu')(forward_input)
-
-    backward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
-    backward_lstm_layer = LSTM(300, activation='relu')(backward_input)
-
-    merge_one = concatenate([forward_lstm_layer, backward_lstm_layer])
-    dropout = Dropout(0.6)(merge_one)
-    dense = Dense(300, activation='relu')(dropout)
-    dropout2 = Dropout(0.6)(dense)
-    dense2 = Dense(100, activation='relu')(dropout2)
-    predictions = Dense(NO_OF_CATEGORIES, activation='softmax')(dense2)
-    prediction2 = Dense(2, activation='relu')(dense2)
-
-    model = Model(inputs=[forward_input, backward_input], outputs=[predictions, prediction2])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     model.summary()
     print('LSTM model created and compiled')
@@ -127,9 +104,9 @@ def create_lstm_crf_model():
     backward_lstm_layer = LSTM(300, activation='relu')(backward_input)
 
     merge_one = concatenate([forward_lstm_layer, backward_lstm_layer])
-    dropout = Dropout(0.5)(merge_one)
+    dropout = Dropout(0.6)(merge_one)
     dense = Dense(300, activation='relu')(dropout)
-    dropout2 = Dropout(0.5)(dense)
+    dropout2 = Dropout(0.6)(dense)
     dense2 = Dense(100, activation='relu')(dropout2)
     dense3 = Dense(NO_OF_CATEGORIES, activation='relu')(dense2)
     reshape = Reshape((1,9))(dense3)
@@ -146,20 +123,20 @@ def create_lstm_crf_char_model():
     print('creating new LSTM-CRF-CHAR model')
 
     forward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
-    forward_lstm_layer = LSTM(256, activation='relu')(forward_input)
+    forward_lstm_layer = LSTM(300, activation='relu')(forward_input)
 
     backward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
-    backward_lstm_layer = LSTM(256, activation='relu')(backward_input)
+    backward_lstm_layer = LSTM(300, activation='relu')(backward_input)
 
-    char_input = Input(shape=(CHAR_EMBEDDING_SIZE,1))
-    char_lstm = LSTM(128, activation='relu')(char_input)
+    char_input = Input(shape=(CHAR_EMBEDDING_SIZE, ))
+    char_lstm = Dense(200, activation='relu')(char_input)
 
     merge_one = concatenate([forward_lstm_layer, backward_lstm_layer])
     dropout = Dropout(0.6)(merge_one)
     merge_two = concatenate([dropout, char_lstm])
-    dense = Dense(256, activation='relu')(merge_two)
-    dropout2 = Dropout(0.5)(dense)
-    dense2 = Dense(128, activation='relu')(dropout2)
+    dense = Dense(300, activation='relu')(merge_two)
+    dropout2 = Dropout(0.6)(dense)
+    dense2 = Dense(100, activation='relu')(dropout2)
     dense3 = Dense(NO_OF_CATEGORIES, activation='relu')(dense2)
     reshape = Reshape((1,9))(dense3)
 
@@ -172,7 +149,7 @@ def create_lstm_crf_char_model():
     return model
 
 def create_lstm_char_model():
-    print('creating new LSTM-CRF-CHAR model')
+    print('creating new LSTM-CHAR model')
 
     forward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
     forward_lstm_layer = LSTM(300, activation='relu')(forward_input)
@@ -181,35 +158,26 @@ def create_lstm_char_model():
     backward_lstm_layer = LSTM(300, activation='relu')(backward_input)
 
     char_input = Input(shape=(CHAR_EMBEDDING_SIZE,))
-    char_lstm = Dense(200, activation='relu')(char_input)
+    char_dense = Dense(100, activation='relu')(char_input)
+    char_drop = Dropout(0.3)(char_dense)
 
     merge_one = concatenate([forward_lstm_layer, backward_lstm_layer])
     dropout = Dropout(0.6)(merge_one)
-    merge_two = concatenate([dropout, char_lstm])
+    merge_two = concatenate([dropout, char_drop])
     dense = Dense(300, activation='relu')(merge_two)
-    dropout2 = Dropout(0.5)(dense)
+    dropout2 = Dropout(0.6)(dense)
     dense2 = Dense(100, activation='relu')(dropout2)
     dense3 = Dense(NO_OF_CATEGORIES, activation='softmax')(dense2)
 
     model = Model(inputs=[forward_input, backward_input, char_input], outputs=dense3)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     model.summary()
-    print('LSTM-CRF-CHAR model created and compiled')
+    print('LSTM-CHAR model created and compiled')
     return model
 
 
-def create_crf_model():
 
-
-    word_ids = Input(shape=(3, NO_OF_CATEGORIES,), dtype='float32')
-
-    crf = CRF(1,sparse_target=True)
-    pred = crf(word_ids)
-    model = Model(inputs=[word_ids], outputs=[pred])
-    model.compile('adam', loss=crf.loss_function, metrics=[crf.accuracy])
-    model.summary()
-    print('CRF model created and compiled')
-    return model
+#GAN models, does not work
 
 
 def create_generative_model():

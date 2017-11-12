@@ -2,7 +2,7 @@ from keras.models import model_from_json
 import pickle
 
 
-def save_model(model, name, path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_Models/9cat/'):
+def save_model(model, name, path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_Models/connl03/'):
     model_json = model.to_json()
     with open(path+name+".json", "w") as json_file:
         json_file.write(model_json)
@@ -11,7 +11,7 @@ def save_model(model, name, path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_
     print(name+ " saved model to disk")
 
 
-def loadModel(name,  path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_Models/9cat'):
+def loadModel(name,  path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_Models/connl03'):
     # load json and create model
     json_file = open(path+'/'+name + '.json', 'r')
     loaded_model_json = json_file.read()
@@ -23,15 +23,15 @@ def loadModel(name,  path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_Models/
     return loaded_model
 
 
-def load_data(path = r'C:\Users\fkarl\PycharmProjects\NER\Model\Data\9cat', data_set = 'connl03' , variable_name = 'train'):
+def load_data(path = r'C:\Users\fkarl\PycharmProjects\NER\Model\Data\connl03\fasttext_IBO2_en', variable_name = 'train'):
 
-    with open(path+'/'+data_set+r'\X_forward.'+variable_name, 'rb') as f:
+    with open(path+r'\X_forward.'+variable_name, 'rb') as f:
         X_forward = pickle.load(f)
 
-    with open(path+'/'+data_set+r'\X_backward.'+variable_name, 'rb') as f:
+    with open(path+r'\X_backward.'+variable_name, 'rb') as f:
         X_backward = pickle.load(f)
 
-    with open(path+'/'+data_set+r'\Y.'+variable_name, 'rb') as f:
+    with open(path+r'\Y.'+variable_name, 'rb') as f:
         Y = pickle.load(f)
 
     print(variable_name,'data was loaded')
@@ -42,11 +42,11 @@ def save_data(X_forward, X_backward, Y, variable_name, path = '..\Model\Data\9ca
     print('saving data in',path,'under the name',variable_name)
 
     with open(path+ r'\X_forward.'+variable_name, 'wb') as f:
-        pickle.dump(X_forward, f,protocol=4)
+        pickle.dump(X_forward, f, protocol=4)
     with open(path+ r'\X_backward.'+variable_name, 'wb') as f:
-        pickle.dump(X_backward, f,protocol=4)
+        pickle.dump(X_backward, f, protocol=4)
     with open(path+ r'\Y.'+variable_name, 'wb') as f:
-        pickle.dump(Y, f,protocol=4)
+        pickle.dump(Y, f, protocol=4)
 
     print('data saved on disk')
 
@@ -54,20 +54,10 @@ def save_padded_character_embedding_list(padded_character_embedding_list, variab
     with open(path+ r'\char_embedding.'+variable_name, 'wb') as f:
         pickle.dump(padded_character_embedding_list, f, protocol=4)
 
-def load_padded_character_embedding_list(path = r'C:\Users\fkarl\PycharmProjects\NER\Model\Data\9cat' , variable_name = 'train'):
+def load_padded_character_embedding_list(path = r'C:\Users\fkarl\PycharmProjects\NER\Model\Data\connl03\fasttext_IBO2_en' , variable_name = 'train'):
     with open(path+r'\char_embedding.'+variable_name, 'rb') as f:
         padded_character_embedding_list = pickle.load(f)
     return padded_character_embedding_list
-
-def load_crf(file_name, mode):
-    with open(r'C:\Users\fkarl\PycharmProjects\NER\Model\CRF_Input\\' + file_name + '_input.' + mode, 'rb') as input_crf_file:
-        crf_input_tmp = pickle.load(input_crf_file)
-
-    with open(r'C:\Users\fkarl\PycharmProjects\NER\Model\CRF_Input\\' + file_name + '_Y.' + mode, 'rb') as crf_Y_file:
-        crf_Y_tmp = pickle.load(crf_Y_file)
-
-    return crf_input_tmp, crf_Y_tmp
-
 
 
 
@@ -119,8 +109,8 @@ def get_tag(tag_no):
 #     else:
 #         raise EnvironmentError
 
-def write_results(target_list, prediction_list, data_set = '9cat/connl03/', result_file_name='results_unnamed', target_file_path =r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\connl03\ner_eng_IBO2.test', pos_of_tag = 3, pos_of_word = 0):
-    with open(r'C:\Users\fkarl\PycharmProjects\NER\Model\Results\\'+data_set + result_file_name, 'w') as result_file:
+def write_results(target_list, prediction_list, data_set = 'connl03', result_file_name='results_unnamed', target_file_path =r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\connl03\ner_eng_IBO2.test', pos_of_tag = 3, pos_of_word = 0):
+    with open(r'C:\Users\fkarl\PycharmProjects\NER\Resources\Results\\'+data_set +'\\'+ result_file_name, 'w') as result_file:
         with open(target_file_path, 'r') as target_file:
             prediction_list = [get_tag(prediction) for prediction in prediction_list]
             target_list = [get_tag(target) for target in target_list]
@@ -129,15 +119,21 @@ def write_results(target_list, prediction_list, data_set = '9cat/connl03/', resu
             raw_target_from_file = [tar.split() if tar else ' ' for tar in raw_target_from_file]
 
             gold_tags = [t[pos_of_tag] if t != ' ' else ' ' for t in raw_target_from_file]
+
+
             word = [t[pos_of_word] if t != ' ' else ' ' for t in raw_target_from_file]
 
             spaces = 0
             for i, target_line in enumerate(gold_tags):
 
                 if gold_tags[i] != ' ':
-                    if target_list[i - spaces] != gold_tags[i]:
-                        print('!!!!!!!!!  should be'+gold_tags[i]+' but is '+target_list[i - spaces]+'  !!!!!!!!!')
-                    result_file.write(word[i] + ' ' +gold_tags[i] + ' ' + prediction_list[i - spaces] + '\n')
+                    if data_set == 'connl03':
+                        if target_list[i - spaces] != gold_tags[i]:
+                            print('!!!!!!!!!  should be'+gold_tags[i]+' but is '+target_list[i - spaces]+'  !!!!!!!!!')
+                        result_file.write(word[i] + ' ' +gold_tags[i] + ' ' + prediction_list[i - spaces] + '\n')
+                    elif data_set == 'sharedTask':
+                        result_file.write(word[i] + ' ' + target_list[i - spaces] + ' ' + prediction_list[i - spaces] + '\n')
+
                 else:
                     result_file.write('\n')
                     spaces += 1

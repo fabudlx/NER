@@ -10,15 +10,16 @@ from Model.WordEmbeddings.WordEmbedding import EmbeddingModel
 from keras.preprocessing import sequence
 
 
-def make_character_embeddings(word_list):
+def make_character_embeddings(word_list, size):
     character_embedding_list = np.array([np.array(list(reversed([ord(character) for character in word]))) for word in word_list])
-    max_len = max([len(element) for element in character_embedding_list])
-    padded_character_embedding_list = sequence.pad_sequences(character_embedding_list, maxlen=61, value=0, dtype='int32')
-    print(max_len)
-    return padded_character_embedding_list, max_len
+    character_embedding_list = [element[:size] for element in character_embedding_list]
 
 
-def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\connl03\ner_eng.train', w2v_class = None, lower = True, pos_of_tag=3):
+    padded_character_embedding_list = sequence.pad_sequences(character_embedding_list, maxlen=size, value=0, dtype='int32')
+    return padded_character_embedding_list
+
+
+def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\connl03\ner_eng.train', w2v_class = None, pos_of_tag=3):
 
     print('reading data')
     raw_data = open(file, 'r').read()
@@ -38,7 +39,7 @@ def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensä
             if previous_words_from_sentence:
                 previous_words_from_sentence = list(reversed(previous_words_from_sentence))
             while previous_words_from_sentence:
-                embedded_backwards_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence, lower)
+                embedded_backwards_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence)
                 for word in unknown:
                     unknown_words.add(word)
                 padded_backwards_sentence = pad_in_front(embedded_backwards_sentence)
@@ -47,33 +48,11 @@ def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensä
         else:
             previous_words_from_sentence.append(data_point[0])
 
-            embedded_forward_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence, lower)
+            embedded_forward_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence)
             for word in unknown:
                 unknown_words.add(word)
             padded_forward_sentence = pad_in_front(embedded_forward_sentence)
             X_forward.append(padded_forward_sentence)
-
-
-            # tag = data_point[pos_of_tag]
-            # if tag == 'O':
-            #     Y.append([[1, 0, 0, 0, 0],[1,0]])
-            # elif tag == 'I-ORG':
-            #     Y.append([[0, 1, 0, 0, 0],[1,0]])
-            # elif tag == 'B-ORG':
-            #     Y.append([[0, 1, 0, 0, 0],[0,1]])
-            # elif tag == 'I-LOC':
-            #     Y.append([[0, 0, 1, 0, 0],[1,0]])
-            # elif tag == 'B-LOC':
-            #     Y.append([[0, 0, 1, 0, 0],[0,1]])
-            # elif tag == 'I-PER' :
-            #     Y.append([[0, 0, 0, 1, 0],[1,0]])
-            # elif tag == 'B-PER':
-            #     Y.append([[0, 0, 0, 1, 0],[0,1]])
-            # elif tag == 'I-MISC':
-            #     Y.append([[0, 0, 0, 0, 1],[1,0]])
-            # elif tag == 'B-MISC':
-            #     Y.append([[0, 0, 0, 0, 1],[0,1]])
-
 
             tag = data_point[pos_of_tag]
             if tag == 'O':
@@ -95,7 +74,7 @@ def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensä
             elif tag == 'B-MISC':
                 Y.append([0, 0, 0, 0, 0, 0, 0, 0, 1])
 
-    padded_character_embedding_list, max_len = make_character_embeddings([word_line[0] for word_line in raw_data])
+    padded_character_embedding_list = make_character_embeddings([word_line[0] for word_line in raw_data if word_line],ModelsNN.CHAR_EMBEDDING_SIZE)
 
     X_forward = np.array(X_forward)
     X_backward = np.array(X_backward)
@@ -103,11 +82,89 @@ def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensä
     np.reshape(X_forward, (len(X_forward), ModelsNN.SENTENCE_LENGTH, EMBEDDING_SIZE))
     np.reshape(X_backward, (len(X_backward), ModelsNN.SENTENCE_LENGTH, EMBEDDING_SIZE))
     np.reshape(Y, (len(Y), ModelsNN.NO_OF_CATEGORIES))
-    np.reshape(padded_character_embedding_list, (len(X_forward), max_len))
+    np.reshape(padded_character_embedding_list, (len(X_forward), ModelsNN.CHAR_EMBEDDING_SIZE))
 
     print('data read and preprocessed')
 
-    return X_forward, X_backward, Y, unknown_words
+    return X_forward, X_backward, Y,padded_character_embedding_list, unknown_words
+
+def make_data_sharedTask(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\sharedTask\NER-de-train.tsv', w2v_class = None, pos_of_tag=2):
+
+    print('reading data')
+    raw_data = open(file, 'r', encoding="utf8").read()
+    raw_data = [word.split() for word in raw_data.split('\n')]
+    if w2v_class is None:
+        w2v_class = EmbeddingModel()
+
+    X_forward = []
+    X_backward = []
+    Y = []
+
+    print('preprocessing data')
+    unknown_words = set()
+    previous_words_from_sentence = []
+    for data_point in raw_data:
+        if not data_point: #shows sentence end
+            if previous_words_from_sentence:
+                previous_words_from_sentence = list(reversed(previous_words_from_sentence))
+            while previous_words_from_sentence:
+                embedded_backwards_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence)
+                for word in unknown:
+                    unknown_words.add(word)
+
+                padded_backwards_sentence = pad_in_front(embedded_backwards_sentence)
+
+                X_backward.append(padded_backwards_sentence)
+                previous_words_from_sentence.pop()
+        else:
+            if data_point[0] != '#':
+                previous_words_from_sentence.append(data_point[1])
+
+                embedded_forward_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence)
+                for word in unknown:
+                    unknown_words.add(word)
+
+                padded_forward_sentence = pad_in_front(embedded_forward_sentence)
+                X_forward.append(padded_forward_sentence)
+
+                tag = data_point[pos_of_tag]
+                if tag.startswith('O') :
+                    Y.append([1, 0, 0, 0, 0, 0, 0, 0, 0])
+                elif tag.startswith('I-ORG'):
+                    Y.append([0, 1, 0, 0, 0, 0, 0, 0, 0])
+                elif tag.startswith('B-ORG'):
+                    Y.append([0, 0, 1, 0, 0, 0, 0, 0, 0])
+                elif tag.startswith('I-LOC'):
+                    Y.append([0, 0, 0, 1, 0, 0, 0, 0, 0])
+                elif tag.startswith('B-LOC'):
+                    Y.append([0, 0, 0, 0, 1, 0, 0, 0, 0])
+                elif tag.startswith('I-PER'):
+                    Y.append([0, 0, 0, 0, 0, 1, 0, 0, 0])
+                elif tag.startswith('B-PER'):
+                    Y.append([0, 0, 0, 0, 0, 0, 1, 0, 0])
+                elif tag.startswith('I-OTH'):
+                    Y.append([0, 0, 0, 0, 0, 0, 0, 1, 0])
+                elif tag.startswith('B-OTH'):
+                    Y.append([0, 0, 0, 0, 0, 0, 0, 0, 1])
+                else:
+                    print('not working tag ',tag)
+
+
+    padded_character_embedding_list = make_character_embeddings([word_line[1] for word_line in raw_data if (word_line and word_line[0] != '#')],ModelsNN.CHAR_EMBEDDING_SIZE)
+
+    X_forward = np.array(X_forward)
+    X_backward = np.array(X_backward)
+    Y = np.array([np.array(y) for y in Y])
+
+    np.reshape(X_forward, (len(X_forward), ModelsNN.SENTENCE_LENGTH, EMBEDDING_SIZE))
+    np.reshape(X_backward, (len(X_forward), ModelsNN.SENTENCE_LENGTH, EMBEDDING_SIZE))
+    np.reshape(Y, (len(X_forward), ModelsNN.NO_OF_CATEGORIES))
+    print(padded_character_embedding_list.shape)
+    np.reshape(padded_character_embedding_list, (len(X_forward), ModelsNN.CHAR_EMBEDDING_SIZE))
+
+    print('data read and preprocessed')
+
+    return X_forward, X_backward, Y, padded_character_embedding_list, unknown_words
 
 
 def pad_in_front(embedded_sentence):
@@ -116,14 +173,8 @@ def pad_in_front(embedded_sentence):
     else:
         return list((np.zeros((SENTENCE_LENGTH-len(embedded_sentence),EMBEDDING_SIZE), dtype=np.float32))) + list(embedded_sentence)
 
-
-# def pad_in_back(embedded_sentence):
-#     if len(embedded_sentence) >= SENTENCE_LENGTH:
-#         return embedded_sentence[:SENTENCE_LENGTH]
-#     else:
-#         return list(embedded_sentence)+ list((np.zeros((SENTENCE_LENGTH-len(embedded_sentence),EMBEDDING_SIZE), dtype=np.float32)))
-
 COUNTER = 0
+
 
 def get_data_regulized(X_forward_train, X_backward_train, Y_train, bach_size = None):
     global COUNTER
