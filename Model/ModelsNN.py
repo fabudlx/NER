@@ -1,4 +1,4 @@
-from keras.layers import LSTM, Conv1D, Flatten, Dropout, Dense, Input, concatenate, Embedding, Reshape
+from keras.layers import LSTM, Conv1D, Flatten, Dropout, Dense, Input, concatenate, Embedding, Reshape, BatchNormalization
 from keras.models import Model
 from keras.optimizers import RMSprop
 import tensorflow as tf
@@ -158,12 +158,11 @@ def create_lstm_char_model():
     backward_lstm_layer = LSTM(300, activation='relu')(backward_input)
 
     char_input = Input(shape=(CHAR_EMBEDDING_SIZE,))
-    char_dense = Dense(100, activation='relu')(char_input)
-    char_drop = Dropout(0.3)(char_dense)
+    char_dense = Dense(200, activation='relu')(char_input)
 
     merge_one = concatenate([forward_lstm_layer, backward_lstm_layer])
     dropout = Dropout(0.6)(merge_one)
-    merge_two = concatenate([dropout, char_drop])
+    merge_two = concatenate([dropout, char_dense])
     dense = Dense(300, activation='relu')(merge_two)
     dropout2 = Dropout(0.6)(dense)
     dense2 = Dense(100, activation='relu')(dropout2)
@@ -171,7 +170,7 @@ def create_lstm_char_model():
 
     model = Model(inputs=[forward_input, backward_input, char_input], outputs=dense3)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    model.summary()
+    # model.summary()
     print('LSTM-CHAR model created and compiled')
     return model
 

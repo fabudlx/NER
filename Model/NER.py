@@ -1,19 +1,13 @@
 from collections import Counter
 import numpy as np
 from sklearn import metrics
-from keras_contrib.layers.crf import CRF
 from keras_contrib.utils import save_load_utils
 from Model import SaveAndLoad as sl, ModelsNN
-from Model.WordEmbeddings import WordEmbedding
 import os.path
 import os
-
 from Model import ReadData
-from keras.preprocessing import sequence
-import tensorflow as tf
-from Lib import queue
-from keras.models import load_model
 import zstd
+from sklearn import preprocessing
 # model_types = normal (bi-lstm), with crf, with char, with both
 
 
@@ -104,10 +98,10 @@ def train_model(model_type, model_name, batch_size=512, epochs = 1, data_set = '
 
         char_embedding_train = sl.load_padded_character_embedding_list(path=path_to_data, variable_name='train')
         print('data was decompressed and is ready')
-        print('forward',X_forward_train.shape)
-        print('backward', X_backward_train.shape)
-        print('Y', Y_train.shape)
-        print('embeddings', char_embedding_train.shape)
+        # print('forward',X_forward_train.shape)
+        # print('backward', X_backward_train.shape)
+        # print('Y', Y_train.shape)
+        # print('embeddings', char_embedding_train.shape)
 
         name_to_save = model_type+'_'+data_set+'_' + embedding_model
         path_to_save = model_folder_path + data_set + '\\'+name_to_save
@@ -117,7 +111,7 @@ def train_model(model_type, model_name, batch_size=512, epochs = 1, data_set = '
 
         if model_type == 'bi-lstm' :
 
-            LSTM.fit([X_forward_train, X_backward_train], Y_train, batch_size=batch_size, epochs=epochs, verbose=2)
+            LSTM.fit([X_forward_train, X_backward_train], Y_train, batch_size=batch_size, epochs=epochs, verbose=2, shuffle=True)
             save_load_utils.save_all_weights(LSTM, path_to_save)
 
         elif model_type == 'bi-lstm_crf':
@@ -130,7 +124,7 @@ def train_model(model_type, model_name, batch_size=512, epochs = 1, data_set = '
 
         elif model_type == 'bi-lstm_char':
 
-            LSTM.fit([X_forward_train, X_backward_train, char_embedding_train], Y_train, batch_size=batch_size, epochs=epochs, verbose=2)
+            LSTM.fit([X_forward_train, X_backward_train, char_embedding_train], Y_train, batch_size=batch_size, epochs=epochs, verbose=2, shuffle=True)
             save_load_utils.save_all_weights(LSTM, path_to_save)
 
         elif model_type == 'bi-lstm_crf_char':
@@ -143,7 +137,7 @@ def train_model(model_type, model_name, batch_size=512, epochs = 1, data_set = '
 
 
 
-def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl03', embedding_model='fasttext_IBO2_en', data_format ='IBO2', language ='eng', pos_of_tag = 3):
+def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl03', embedding_model='fasttext_IBO2_en', data_format ='IBO2', language ='eng', pos_of_tag = 3, save_name = None):
     dctx = zstd.ZstdDecompressor()
     model_types = {'bi-lstm': ModelsNN.create_lstm_model,
                    'bi-lstm_crf': ModelsNN.create_lstm_crf_model,
@@ -179,12 +173,15 @@ def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl0
 
         char_embedding_test = sl.load_padded_character_embedding_list(path=path_to_data, variable_name=test_set_ending)
         print('test data loaded')
-        print('forward',X_forward_test.shape)
-        print('backward', X_backward_test.shape)
-        print('Y', Y_test.shape)
-        print('embeddings', char_embedding_test.shape)
+        # print('forward',X_forward_test.shape)
+        # print('backward', X_backward_test.shape)
+        # print('Y', Y_test.shape)
+        # print('embeddings', char_embedding_test.shape)
 
-        name_to_save = model_type+'_'+data_set+'_' + embedding_model
+        if save_name is None:
+            name_to_save = model_type+'_'+data_set+'_' + embedding_model
+        else:
+            name_to_save = save_name
         path_to_save = model_folder_path + data_set + '\\'+name_to_save
 
         if model_type == 'bi-lstm' or model_type == 'bi-lstm_crf':

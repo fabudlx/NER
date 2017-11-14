@@ -57,7 +57,8 @@ def save_padded_character_embedding_list(padded_character_embedding_list, variab
 def load_padded_character_embedding_list(path = r'C:\Users\fkarl\PycharmProjects\NER\Model\Data\connl03\fasttext_IBO2_en' , variable_name = 'train'):
     with open(path+r'\char_embedding.'+variable_name, 'rb') as f:
         padded_character_embedding_list = pickle.load(f)
-    return padded_character_embedding_list
+    normalized = padded_character_embedding_list.normalize(padded_character_embedding_list)
+    return normalized
 
 
 
