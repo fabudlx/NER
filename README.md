@@ -19,6 +19,10 @@ pip intall zstd, numpy, sklearn, keras, tensorflow
 
 ### Setup for development
 
+Development is ready to use for two datasets:
+*coNNL 2003
+*germEval 2014
+
 Download the whole thing. 
 Change links in 'NER' class: 
 
