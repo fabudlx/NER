@@ -78,7 +78,7 @@ tag_sentence: tags a list of input sentence and returns the tag sequence
 ```
 w2v_class = EmbeddingModel(r'path_to_pretrained_model\pretrained Model\wiki.de.vec', lower=False, binary=True)
 list_of_sentences = ['How nice it is to live in Hamburg']
-NER.tag_sentence(w2v_class, model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03', embedding_model='fasttext_deu', model, list_of_sentences)
+NER.tag_sentence(w2v_class, model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03', embedding_model='fasttext_deu', model, list_of_sentences)
 
 ```
 
