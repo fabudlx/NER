@@ -1,5 +1,6 @@
 from keras.models import model_from_json
 import pickle
+from sklearn import preprocessing
 
 
 def save_model(model, name, path =r'C:/Users/fkarl/PycharmProjects/NER/Model/NN_Models/connl03/'):
@@ -57,8 +58,8 @@ def save_padded_character_embedding_list(padded_character_embedding_list, variab
 def load_padded_character_embedding_list(path = r'C:\Users\fkarl\PycharmProjects\NER\Model\Data\connl03\fasttext_IBO2_en' , variable_name = 'train'):
     with open(path+r'\char_embedding.'+variable_name, 'rb') as f:
         padded_character_embedding_list = pickle.load(f)
-    normalized = padded_character_embedding_list.normalize(padded_character_embedding_list)
-    return normalized
+    normalized_padded_character_embedding_list = preprocessing.normalize(padded_character_embedding_list)
+    return normalized_padded_character_embedding_list
 
 
 
@@ -84,57 +85,35 @@ def get_tag(tag_no):
     else:
         raise EnvironmentError
 
-# def get_tag(tag_no,tag_pos):
-#     if tag_no == 0:
-#         return 'O'
-#     elif tag_no == 1:
-#         if tag_pos == 1:
-#             return 'B-ORG'
-#         elif tag_pos == 0:
-#             return 'I-ORG'
-#     elif tag_no == 2:
-#         if tag_pos == 1:
-#             return 'B-LOC'
-#         elif tag_pos == 0:
-#             return 'I-LOC'
-#     elif tag_no == 3:
-#         if tag_pos == 1:
-#             return 'B-PER'
-#         elif tag_pos == 0:
-#             return 'I-PER'
-#     elif tag_no == 4:
-#         if tag_pos == 1:
-#             return 'B-MISC'
-#         elif tag_pos == 0:
-#             return 'I-MISC'
-#     else:
-#         raise EnvironmentError
-
 def write_results(target_list, prediction_list, data_set = 'connl03', result_file_name='results_unnamed', target_file_path =r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\connl03\ner_eng_IBO2.test', pos_of_tag = 3, pos_of_word = 0):
-    with open(r'C:\Users\fkarl\PycharmProjects\NER\Resources\Results\\'+data_set +'\\'+ result_file_name, 'w') as result_file:
-        with open(target_file_path, 'r') as target_file:
-            prediction_list = [get_tag(prediction) for prediction in prediction_list]
-            target_list = [get_tag(target) for target in target_list]
+    print(target_file_path)
 
-            raw_target_from_file = target_file.read().split('\n')
-            raw_target_from_file = [tar.split() if tar else ' ' for tar in raw_target_from_file]
+    if data_set == 'connl03':
+        result_file = open(r'C:\Users\fkarl\PycharmProjects\NER\Resources\Results\\' + data_set + '\\' + result_file_name, 'w')
+        target_file = open(target_file_path, 'r')
+    elif data_set == 'germeval':
+        result_file = open(r'C:\Users\fkarl\PycharmProjects\NER\Resources\Results\\' + data_set + '\\' + result_file_name, 'w', encoding='utf-8')
+        target_file = open(target_file_path, 'r', encoding='utf-8')
+    prediction_list = [get_tag(prediction) for prediction in prediction_list]
+    target_list = [get_tag(target) for target in target_list]
 
-            gold_tags = [t[pos_of_tag] if t != ' ' else ' ' for t in raw_target_from_file]
+    raw_target_from_file = target_file.read().split('\n')
+    raw_target_from_file = [tar.split() if tar else ' ' for tar in raw_target_from_file]
+
+    gold_tags = [t[pos_of_tag] if t != ' ' else ' ' for t in raw_target_from_file if '#' not in t[0]]
 
 
-            word = [t[pos_of_word] if t != ' ' else ' ' for t in raw_target_from_file]
+    word = [t[pos_of_word] if t != ' ' else ' ' for t in raw_target_from_file if '#' not in t[0]]
 
-            spaces = 0
-            for i, target_line in enumerate(gold_tags):
+    spaces = 0
+    for i, target_line in enumerate(gold_tags):
 
-                if gold_tags[i] != ' ':
-                    if data_set == 'connl03':
-                        if target_list[i - spaces] != gold_tags[i]:
-                            print('!!!!!!!!!  should be'+gold_tags[i]+' but is '+target_list[i - spaces]+'  !!!!!!!!!')
-                        result_file.write(word[i] + ' ' +gold_tags[i] + ' ' + prediction_list[i - spaces] + '\n')
-                    elif data_set == 'sharedTask':
-                        result_file.write(word[i] + ' ' + target_list[i - spaces] + ' ' + prediction_list[i - spaces] + '\n')
+        if gold_tags[i] != ' ':
+            # if target_list[i - spaces] != gold_tags[i]:
+                #print('!!!!!!!!!  should be'+gold_tags[i]+' but is '+target_list[i - spaces]+'  !!!!!!!!!')
+            # result_file.write(word[i] + ' ' +gold_tags[i] + ' ' + prediction_list[i - spaces] + '\n')
+            result_file.write(word[i] + ' ' + target_list[i - spaces] + ' ' + prediction_list[i - spaces] + '\n')
 
-                else:
-                    result_file.write('\n')
-                    spaces += 1
+        else:
+            result_file.write('\n')
+            spaces += 1

@@ -88,7 +88,7 @@ def make_data_connl03(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensä
 
     return X_forward, X_backward, Y,padded_character_embedding_list, unknown_words
 
-def make_data_sharedTask(file = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\sharedTask\NER-de-train.tsv', w2v_class = None, pos_of_tag=2):
+def make_data_germEval(file =r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\germeval\NER-de-train.tsv', w2v_class = None, pos_of_tag=2):
 
     print('reading data')
     raw_data = open(file, 'r', encoding="utf8").read()
