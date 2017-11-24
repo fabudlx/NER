@@ -80,10 +80,9 @@ for word_tag_pair in tagged_sentence:
 
 Development is ready to use for two datasets:
 
-* oNNL 2003
-* ermEval 2014
+* coNNL 2003
+* germEval 2014
 
-Download the whole thing. 
 Change links in 'NER' class: 
 
 raw_data_path: data in text form
