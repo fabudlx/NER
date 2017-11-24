@@ -10,18 +10,78 @@ These instructions will get you a copy of the project up and running on your loc
 
 You will need a pretrained word embedding model (word2vec, fasttext, ect) in the gensim KeyedVector fashion
 
-* [fastText](https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md) - big but good
+* [fastText](https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md) - big but good, used for the pretrained models in this work
 * [GloVe](https://nlp.stanford.edu/projects/glove/) - also good
 
 
 pip intall zstd, numpy, sklearn, keras, tensorflow
 
+## Examples
+
+The GAN_main file is full of examples.
+
+## Using it
+
+If you only want to use the tagger with a pretraind model from this work, you only need the [fastText](https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md) model and to adjust the model_folder_path and the path to the pretrained fasttext model:
+
+tag_sentence: tags a list of input sentence and returns the tag sequence
+
+```
+w2v_class = EmbeddingModel(r'C:\PATH_TO_W2V_MODEL\wiki.en.vec', lower=True, binary=False)
+
+test_sentence = 'John Wick really liked his dog Chester. They went to New York together to support the Help Orphan Puppies organization!'
+tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm', 'bi-lstm_connl03_fasttext_eng', 'connl03', 'fasttext_eng')
+for word_tag_pair in tagged_sentence:
+    print(word_tag_pair)
+>>('John', 'B-PER')
+>>('Wick', 'I-PER')
+>>('really', 'O')
+>>('liked', 'O')
+>>('his', 'O')
+>>('dog', 'O')
+>>('Chester', 'B-ORG')
+>>('.', 'O')
+>>('They', 'O')
+>>('went', 'O')
+>>('to', 'O')
+>>('New', 'B-LOC')
+>>('York', 'I-LOC')
+>>('together', 'O')
+>>('to', 'O')
+>>('support', 'O')
+>>('the', 'O')
+>>('Help', 'O')
+>>('Orphan', 'O')
+>>('Puppies', 'O')
+>>('organization', 'O')
+>>('!', 'O')
+
+
+test_sentence = 'The man went to Hamburg to see his friend Fabian.'
+tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm', 'bi-lstm_connl03_fasttext_eng', 'connl03', 'fasttext_eng')
+for word_tag_pair in tagged_sentence:
+    print(word_tag_pair)    
+>>('The', 'O')
+>>('man', 'O')
+>>('went', 'O')
+>>('to', 'O')
+>>('Hamburg', 'B-LOC')
+>>('to', 'O')
+>>('see', 'O')
+>>('his', 'O')
+>>('friend', 'O')
+>>('Fabian', 'B-PER')
+>>('.', 'O')
+
+```
+
 
 ### Setup for development
 
 Development is ready to use for two datasets:
-*coNNL 2003
-*germEval 2014
+
+* oNNL 2003
+* ermEval 2014
 
 Download the whole thing. 
 Change links in 'NER' class: 
@@ -51,9 +111,6 @@ train_model: trains model and saves it to model_folder_path
 test_model: tests model and saves results to disk
 ```
 
-## Examples
-Can be found in 'main' class
-
 create_training_data:
 ```
 w2v_class = EmbeddingModel(r'path_to_pretrained_model\pretrained Model\wiki.de.vec', lower=False, binary=True)
@@ -72,17 +129,3 @@ testing model:
 ```
 NER.test_model(model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu', test_set_ending='test',data_set='connl03', embedding_model='fasttext_deu', pos_of_tag=4)
 ```
-
-## Using it
-
-If you only want to use the tagger, you only need the word 2 vec model and to adjust the model_folder_path:
-
-tag_sentence: tags a list of input sentence and returns the tag sequence
-
-```
-w2v_class = EmbeddingModel(r'path_to_pretrained_model\pretrained Model\wiki.de.vec', lower=False, binary=True)
-list_of_sentences = ['How nice it is to live in Hamburg']
-NER.tag_sentence(w2v_class, model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03', embedding_model='fasttext_deu', model, list_of_sentences)
-
-```
-
