@@ -2,6 +2,7 @@ from collections import Counter
 from random import randint
 
 import numpy as np
+import re
 
 from Model import ModelsNN
 from Model.ModelsNN import SENTENCE_LENGTH
@@ -175,6 +176,11 @@ def pad_in_front(embedded_sentence):
 
 COUNTER = 0
 
+
+def pad_punctuation(string):
+    string = re.sub('([\/\.\,\(\)\!\?\-\:\\"])', r' \1 ', string)
+    string = re.sub('\s{2,}', ' ', string)
+    return string
 
 def get_data_regulized(X_forward_train, X_backward_train, Y_train, bach_size = None):
     global COUNTER

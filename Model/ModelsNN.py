@@ -70,6 +70,44 @@ def create_CNN_model():
     return model
 
 
+def create_cnn_char_model():
+    print('creating new CNN CHAR model')
+
+    forward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
+    forward_cnn_layer1 = Conv1D(filters=50, kernel_size=(2), activation='relu',padding="same")(forward_input)
+    forward_cnn_layer2 = Conv1D(filters=50, kernel_size=(5), activation='relu', padding="same")(forward_input)
+
+    backward_input = Input(shape=(SENTENCE_LENGTH, EMBEDDING_SIZE))
+    backward_cnn_layer1 = Conv1D(filters=50, kernel_size=(2), activation='relu', padding="same")(backward_input)
+    backward_cnn_layer2 = Conv1D(filters=50,kernel_size=(5), activation='relu', padding="same")(backward_input)
+
+    merge1 = concatenate([forward_cnn_layer1, backward_cnn_layer1])
+    dropout1 = Dropout(0.6)(merge1)
+    flatten1 = Flatten()(dropout1)
+    dense1 = Dense(200, activation='relu')(flatten1)
+
+    merge2 = concatenate([forward_cnn_layer2,backward_cnn_layer2])
+    dropout2 = Dropout(0.6)(merge2)
+    flatten2 = Flatten()(dropout2)
+    dense2 = Dense(200, activation='relu')(flatten2)
+
+    char_input = Input(shape=(CHAR_EMBEDDING_SIZE,))
+    char_dense = Dense(200, activation='relu')(char_input)
+
+    merge_complete = concatenate([dense1,dense2,char_dense])
+    dropout_complete = Dropout(0.6)(merge_complete)
+    dense_complete = Dense(300, activation='relu')(dropout_complete)
+    dense_last = Dense(100, activation='relu')(dropout_complete)
+
+    predictions = Dense(NO_OF_CATEGORIES, activation='softmax')(dense_last)
+
+    model = Model(inputs=[forward_input, backward_input, char_input], outputs=predictions)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.summary()
+    print('CNN CHAR model created and compiled')
+    return model
+
+
 
 def create_lstm_model():
     print('creating new LSTM model')
@@ -170,7 +208,7 @@ def create_lstm_char_model():
 
     model = Model(inputs=[forward_input, backward_input, char_input], outputs=dense3)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    # model.summary()
+    model.summary()
     print('LSTM-CHAR model created and compiled')
     return model
 

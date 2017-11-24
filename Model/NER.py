@@ -7,8 +7,8 @@ import os.path
 import os
 from Model import ReadData
 import zstd
-from sklearn import preprocessing
-# model_types = normal (bi-lstm), with crf, with char, with both
+import re
+
 
 
 
@@ -62,7 +62,8 @@ def train_model(model_type, model_name, batch_size=512, epochs = 1, data_set = '
     model_types = {'bi-lstm': ModelsNN.create_lstm_model,
                    'bi-lstm_crf':ModelsNN.create_lstm_crf_model,
                    'bi-lstm_char':ModelsNN.create_lstm_char_model,
-                   'bi-lstm_crf_char':ModelsNN.create_lstm_crf_char_model}
+                   'bi-lstm_crf_char':ModelsNN.create_lstm_crf_char_model,
+                   'cnn_char':ModelsNN.create_cnn_char_model}
 
 
 
@@ -122,7 +123,7 @@ def train_model(model_type, model_name, batch_size=512, epochs = 1, data_set = '
             save_load_utils.save_all_weights(LSTM, path_to_save)
 
 
-        elif model_type == 'bi-lstm_char':
+        elif model_type == 'bi-lstm_char' or model_type == 'cnn_char':
 
             LSTM.fit([X_forward_train, X_backward_train, char_embedding_train], Y_train, batch_size=batch_size, epochs=epochs, verbose=2, shuffle=True)
             save_load_utils.save_all_weights(LSTM, path_to_save)
@@ -142,7 +143,8 @@ def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl0
     model_types = {'bi-lstm': ModelsNN.create_lstm_model,
                    'bi-lstm_crf': ModelsNN.create_lstm_crf_model,
                    'bi-lstm_char': ModelsNN.create_lstm_char_model,
-                   'bi-lstm_crf_char': ModelsNN.create_lstm_crf_char_model}
+                   'bi-lstm_crf_char': ModelsNN.create_lstm_crf_char_model,
+                   'cnn_char':ModelsNN.create_cnn_char_model}
 
     if model_type in model_types:
         print('Model type', model_type, 'detected')
@@ -216,30 +218,64 @@ def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl0
             if file.endswith(test_set_ending):
                 sl.write_results(target_list, prediction_list,data_set= data_set, result_file_name= test_set_ending.capitalize() + '_result_' + name_to_save, target_file_path=path_to_raw_data+'\\'+file, pos_of_tag=pos_of_tag, pos_of_word=pos_of_word)
 
-    def tag_sentence(w2v_class, sentence, model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03', embedding_model='fasttext_deu'):
+def tag_sentence(w2v_class, sentence, model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03', embedding_model='fasttext_deu'):
 
-        model_types = {'bi-lstm': ModelsNN.create_lstm_model,
-                       'bi-lstm_crf': ModelsNN.create_lstm_crf_model,
-                       'bi-lstm_char': ModelsNN.create_lstm_char_model,
-                       'bi-lstm_crf_char': ModelsNN.create_lstm_crf_char_model}
+    model_types = {'bi-lstm': ModelsNN.create_lstm_model,
+                   'bi-lstm_crf': ModelsNN.create_lstm_crf_model,
+                   'bi-lstm_char': ModelsNN.create_lstm_char_model,
+                   'bi-lstm_crf_char': ModelsNN.create_lstm_crf_char_model}
 
-        if model_type in model_types:
-            print('Model type', model_type, 'detected')
+    if model_type in model_types:
+        print('Model type', model_type, 'detected')
 
-            LSTM = model_types[model_type]()
-            print('Model was initialized')
+        LSTM = model_types[model_type]()
+        print('Model was initialized')
 
-            model_path = model_folder_path + data_set + '\\' + model_name
+        model_path = model_folder_path + data_set + '\\' + model_name
 
-            if (os.path.isfile(model_path)):
-                save_load_utils.load_all_weights(LSTM, model_path)
-                print('Weights from old model found and loaded')
-            else:
-                print('No model found in', model_path)
-
-            embedded_sentence = w2v_class.get_embedding_improved(sentence)
-            tags_of_sentence = LSTM.predict(embedded_sentence)
-
-
+        if (os.path.isfile(model_path)):
+            save_load_utils.load_all_weights(LSTM, model_path)
+            print('Weights from old model found and loaded')
         else:
-            print('model unknown!!!')
+            print('No model found in', model_path)
+            return None
+
+        sentence = ReadData.pad_punctuation(sentence).strip().split(' ')
+
+        print('reading sentence')
+        X_forward = []
+        X_backward = []
+
+        previous_words_from_sentence = []
+        for word in sentence:
+            previous_words_from_sentence.append(word)
+            # print(previous_words_from_sentence)
+            embedded_forward_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence)
+            padded_forward_sentence = ReadData.pad_in_front(embedded_forward_sentence)
+            X_forward.append(padded_forward_sentence)
+
+        previous_words_from_sentence = list(reversed(previous_words_from_sentence))
+        while previous_words_from_sentence:
+            # print(previous_words_from_sentence)
+            embedded_backwards_sentence, unknown = w2v_class.get_embedding_improved(previous_words_from_sentence)
+            padded_backwards_sentence = ReadData.pad_in_front(embedded_backwards_sentence)
+            X_backward.append(padded_backwards_sentence)
+            previous_words_from_sentence.pop()
+
+        X_forward = np.array(X_forward)
+        X_backward = np.array(X_backward)
+
+        char_embedding = ReadData.make_character_embeddings(sentence, ModelsNN.CHAR_EMBEDDING_SIZE)
+        if model_type == 'bi-lstm' or model_type == 'bi-lstm_crf':
+            prediction_softmax = LSTM.predict([X_forward, X_backward])
+        else:  # model_type == 'bi-lstm_char' or model_type == 'bi-lstm_crf_char':
+            prediction_softmax = LSTM.predict([X_forward, X_backward, char_embedding])
+
+        prediction_list = [sl.get_tag(np.argmax(value)) for value in prediction_softmax]
+        tagged_sentence = zip(sentence, prediction_list)
+        # print(tagged_sentence)
+        return(tagged_sentence)
+
+    else:
+        print('model unknown!!!')
+        return None
