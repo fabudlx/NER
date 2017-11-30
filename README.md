@@ -22,7 +22,7 @@ The GAN_main file is full of examples.
 
 ## Using it
 
-If you only want to use the tagger with a pretraind model from this work, you only need the [fastText](https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md) model and to adjust the model_folder_path and the path to the pretrained fasttext model:
+If you only want to use the tagger with a pretraind model from this work, you only need the [fastText](https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md) model:
 
 tag_sentence: tags a list of input sentence and returns the tag sequence
 
@@ -83,7 +83,7 @@ Development is ready to use for two datasets:
 * coNNL 2003
 * germEval 2014
 
-Change links in 'NER' class: 
+Change link in 'NER' class to your data: 
 
 raw_data_path: data in text form
 
@@ -96,8 +96,6 @@ All datasets need to end in either .train, .dev or .test!
 
 ```
 raw_data_path = r'C:\Users\Me\data\NER\Datensätze\\'
-model_folder_path = r'C:\Users\Me\PycharmProjects\NER\Resources\NN_Models\\'
-data_folder_path = r'C:\Users\Me\PycharmProjects\NER\Resources\Data\\'
 ```
 
 ## Development
