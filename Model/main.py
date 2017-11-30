@@ -4,30 +4,30 @@ from Model.WordEmbeddings.WordEmbedding import EmbeddingModel
 
 
 #**** TAG SENTENCE ****
-w2v_class = EmbeddingModel(r'C:\Users\fkarl\Desktop\Science Stuff\pretrained Model\wiki.en.vec' ,lower=True, binary=False)
+w2v_class = EmbeddingModel(r'C:\Path\To\W2V\Model' ,lower=True, binary=True)
 test_sentence = 'John Wick really liked his dog Chester. They went to New York together to support the Help Orphan Puppies organization!'
-tagged_sentence = NER.tag_sentence(w2v_class,test_sentence,'bi-lstm_char','bi-lstm_char_connl03_fasttext_eng','connl03','fasttext_eng')
+tagged_sentence = NER.tag_sentence(w2v_class,test_sentence,'bi-lstm_char','bi-lstm_char_connl03_fasttext_eng','connl03')
 for word_tag_pair in tagged_sentence:
     print(word_tag_pair)
 
 test_sentence = 'Their stay on top, though, may be short lived as tiltle rivales Essex, Derbyshire and Surrey all closed in on victory.'
-tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm_char', 'bi-lstm_char_connl03_fasttext_eng', 'connl03', 'fasttext_eng')
+tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm_char', 'bi-lstm_char_connl03_fasttext_eng', 'connl03')
 for word_tag_pair in tagged_sentence:
     print(word_tag_pair)
 
 test_sentence = 'The man went to Hamburg to see his friend Fabian.'
-tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm_char', 'bi-lstm_char_connl03_fasttext_eng', 'connl03', 'fasttext_eng')
+tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm_char', 'bi-lstm_char_connl03_fasttext_eng', 'connl03')
 for word_tag_pair in tagged_sentence:
     print(word_tag_pair)
 
 
 test_sentence = 'The man went to Hamburg to see his friend Fabian.'
-tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm', 'bi-lstm_connl03_fasttext_eng', 'connl03', 'fasttext_eng')
+tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm', 'bi-lstm_connl03_fasttext_eng', 'connl03')
 for word_tag_pair in tagged_sentence:
     print(word_tag_pair)
 
 test_sentence = 'John Wick really liked his dog Chester. They went to New York together to support the Help Orphan Puppies organization!'
-tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm', 'bi-lstm_connl03_fasttext_eng', 'connl03', 'fasttext_eng')
+tagged_sentence = NER.tag_sentence(w2v_class, test_sentence, 'bi-lstm', 'bi-lstm_connl03_fasttext_eng', 'connl03')
 for word_tag_pair in tagged_sentence:
     print(word_tag_pair)
 

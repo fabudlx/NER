@@ -11,10 +11,10 @@ import re
 
 
 
-
+#TODO: replace with your path
 raw_data_path = r'C:\Users\fkarl\Desktop\Science Stuff\NER\Datensätze\\'
-model_folder_path = r'C:\Users\fkarl\PycharmProjects\NER\Resources\NN_Models\\'
-data_folder_path = r'C:\Users\fkarl\PycharmProjects\NER\Resources\Data\\'
+model_folder_path = r'..\Resources\NN_Models\\'
+data_folder_path = r'..\Resources\Data\\'
 
 
 def create_training_data(w2v_class, embedding_model, data_set ='connl03', data_format ='IBO2', language ='eng', pos_of_tag = 3):
@@ -176,10 +176,6 @@ def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl0
         char_embedding_test = sl.load_padded_character_embedding_list(path=path_to_data, variable_name=test_set_ending)
         print('test data loaded')
         print('forward',X_forward_test.shape)
-        # print('backward', X_backward_test.shape)
-        # print('Y', Y_test.shape)
-        # print('embeddings', char_embedding_test.shape)
-
         if save_name is None:
             name_to_save = model_type+'_'+data_set+'_' + embedding_model
         else:
@@ -190,7 +186,7 @@ def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl0
 
             prediction_softmax = LSTM.predict([X_forward_test, X_backward_test])
 
-        else:# model_type == 'bi-lstm_char' or model_type == 'bi-lstm_crf_char':
+        else:
 
             prediction_softmax = LSTM.predict([X_forward_test, X_backward_test, char_embedding_test])
 
@@ -218,7 +214,7 @@ def test_model(model_type, model_name, test_set_ending ='dev', data_set ='connl0
             if file.endswith(test_set_ending):
                 sl.write_results(target_list, prediction_list,data_set= data_set, result_file_name= test_set_ending.capitalize() + '_result_' + name_to_save, target_file_path=path_to_raw_data+'\\'+file, pos_of_tag=pos_of_tag, pos_of_word=pos_of_word)
 
-def tag_sentence(w2v_class, sentence, model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03', embedding_model='fasttext_deu'):
+def tag_sentence(w2v_class, sentence, model_type='bi-lstm', model_name='bi-lstm_connl03_fasttext_deu',data_set='connl03'):
 
     model_types = {'bi-lstm': ModelsNN.create_lstm_model,
                    'bi-lstm_crf': ModelsNN.create_lstm_crf_model,
